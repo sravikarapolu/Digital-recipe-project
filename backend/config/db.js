@@ -1,6 +1,9 @@
 
 import mongoose from "mongoose";
 
+// Suppress strictQuery warning
+mongoose.set('strictQuery', false);
+
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI);

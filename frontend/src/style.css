@@ -27,23 +27,53 @@
 
 /* Buttons */
 .btn-primary {
-  @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl2 bg-caramel-500 text-white shadow-card hover:shadow-hover hover:-translate-y-0.5 transition transform;
+  @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-caramel-500 to-caramel-600 text-white font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 transform active:scale-95;
 }
 .btn-outline {
-  @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-neutral-200 text-brown-400 bg-white hover:bg-neutral-50 transition;
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border-2 border-neutral-300 text-brown-400 bg-white hover:bg-neutral-50 hover:border-caramel-400 transition-all duration-200 font-medium shadow-sm hover:shadow-md;
 }
 
 /* Card */
 .card {
-  @apply bg-white rounded-xl2 border border-neutral-200 shadow-card hover:shadow-hover transition p-4;
+  @apply bg-white rounded-2xl border border-neutral-200 shadow-md hover:shadow-xl transition-all duration-300 p-4 sm:p-5;
 }
 
 /* Tiny helpers */
 .kicker { @apply text-xs uppercase tracking-widest text-brown-300 font-medium }
 .small-muted { @apply text-xs text-brown-200 }
-/* ---------- WATERMARK / LOGO STYLES (paste at end of src/style.css) ---------- */
 
-
+/* Responsive text utilities */
+@layer utilities {
+  .text-responsive-xl {
+    @apply text-2xl sm:text-3xl lg:text-4xl;
+  }
+  .text-responsive-lg {
+    @apply text-xl sm:text-2xl lg:text-3xl;
+  }
+  .text-responsive-base {
+    @apply text-sm sm:text-base;
+  }
+  
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+/* ---------- WATERMARK / LOGO STYLES ---------- */
+.fixed-watermark-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* ---------------- OPTION C: Corner decorative watermark ---------------- */
 .corner-watermark {
@@ -52,16 +82,25 @@
 .corner-watermark::after {
   content: "";
   position: fixed;
-  right: 28px;
-  bottom: 28px;
-  width: 160px;
-  height: 160px;
+  right: 20px;
+  bottom: 20px;
+  width: 120px;
+  height: 120px;
   background-image: url("/recipebook_logo.jpg");
   background-size: contain;
   background-repeat: no-repeat;
-  opacity: 0.06;  /* tweak */
+  opacity: 0.04;
   pointer-events: none;
   z-index: 0;
+}
+
+@media (min-width: 768px) {
+  .corner-watermark::after {
+    width: 160px;
+    height: 160px;
+    right: 28px;
+    bottom: 28px;
+  }
 }
 
 /* -------------- PRINT: hide watermark on print -------------- */
@@ -70,5 +109,17 @@
   .fixed-watermark-overlay img,
   .corner-watermark::after {
     display: none !important;
+  }
+}
+
+/* Responsive utilities */
+@layer utilities {
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

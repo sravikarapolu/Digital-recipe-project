@@ -1,50 +1,101 @@
 // src/components/Hero.jsx
+import { useState } from "react";
 import { FaSearch } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
+import AddRecipeModal from "./AddRecipeModal";
+import AuthModal from "./AuthModal";
 
-const Hero = ({ searchTerm, setSearchTerm }) => {
+const Hero = ({ searchTerm, setSearchTerm, onRecipeAdded }) => {
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { isAuthenticated } = useAuth();
+
+  const handleCreateRecipe = () => {
+    if (isAuthenticated) {
+      setShowAddModal(true);
+    } else {
+      setShowAuthModal(true);
+    }
+  };
+
+  const handleRecipeAdded = (newRecipe) => {
+    setShowAddModal(false);
+    if (onRecipeAdded) {
+      onRecipeAdded(newRecipe);
+    }
+  };
   return (
-    <section className="w-full border-b bg-gradient-to-br from-cream-100 to-cream-50">
-      <div className="max-w-6xl mx-auto px-6 py-14 flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
-        <div className="max-w-2xl">
-          <p className="kicker">Digital Recipe Book</p>
+    <section className="w-full border-b bg-gradient-to-br from-cream-50 via-cream-100 to-cream-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-16">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
+          {/* Text Content */}
+          <div className="max-w-2xl">
+            <p className="kicker text-caramel-600">Digital Recipe Book</p>
 
-          <h1 className="mt-4 text-4xl lg:text-5xl font-bold leading-tight text-brown-500">
-            Save, organize & cook your favourite recipes beautifully.
-          </h1>
+            <h1 className="mt-3 sm:mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-brown-500">
+              Save, organize & cook your favourite recipes beautifully.
+            </h1>
 
-          <p className="mt-4 text-brown-300 max-w-lg">
-            Search across your personal cookbook, filter by category and cook with confidence.
-            Built for home chefs, food bloggers and families.
-          </p>
+            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-brown-400 max-w-lg leading-relaxed">
+              Search across your personal cookbook, filter by category and cook with confidence.
+              Built for home chefs, food bloggers and families.
+            </p>
 
-          <div className="mt-6 flex items-center gap-3">
-            <button className="btn-primary">Create recipe</button>
-            <button className="btn-outline">Import</button>
+            <div className="mt-5 sm:mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <button onClick={handleCreateRecipe} className="btn-primary w-full sm:w-auto">
+                Create recipe
+              </button>
+              <button className="btn-outline w-full sm:w-auto" disabled title="Coming soon">
+                Import
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="w-full max-w-md">
-          <label htmlFor="hero-search" className="text-sm font-medium text-brown-300">
-            Search recipes
-          </label>
+          {/* Search Box */}
+          <div className="w-full max-w-md lg:max-w-lg">
+            <label htmlFor="hero-search" className="text-sm font-semibold text-brown-400 mb-2 block">
+              Search recipes
+            </label>
 
-          <div className="mt-2 flex items-center gap-3 rounded-full border border-neutral-200 bg-white px-4 py-2 shadow-sm">
-            <span className="text-brown-200" aria-hidden="true">
-              <FaSearch />
-            </span>
+            <div className="flex items-center gap-3 rounded-2xl border-2 border-neutral-300 bg-white px-4 sm:px-5 py-3 sm:py-3.5 shadow-md hover:shadow-lg transition-all focus-within:border-caramel-400 focus-within:ring-2 focus-within:ring-caramel-200">
+              <span className="text-brown-300 text-lg" aria-hidden="true">
+                <FaSearch />
+              </span>
 
-            <input
-              id="hero-search"
-              type="text"
-              placeholder="Try 'paneer', 'breakfast', 'pasta'..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              aria-label="Search recipes"
-              className="flex-1 bg-transparent text-brown-400 outline-none focus:ring-2 focus:ring-caramel-200 focus:border-transparent rounded-full"
-            />
+              <input
+                id="hero-search"
+                type="text"
+                placeholder="Try 'paneer', 'breakfast', 'pasta'..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                aria-label="Search recipes"
+                className="flex-1 bg-transparent text-brown-400 placeholder:text-brown-300 outline-none text-sm sm:text-base"
+              />
+
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="text-brown-300 hover:text-brown-400 transition"
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      <AddRecipeModal 
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onRecipeAdded={handleRecipeAdded}
+      />
+      
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </section>
   );
 };

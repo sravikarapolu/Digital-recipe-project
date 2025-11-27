@@ -1,9 +1,13 @@
 // src/App.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { FaUtensils } from "react-icons/fa";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import SidebarFilters from "./components/SidebarFilters";
 import RecipeGrid from "./components/RecipeGrid";
+import LandingPage from "./components/LandingPage";
+import { useAuth } from "./context/AuthContext";
+import { recipeAPI } from "./services/api";
 
 /* ---------------- MOCK RECIPES: existing + 3 newly added ---------------- */
 const MOCK_RECIPES = [
@@ -113,23 +117,89 @@ const MOCK_RECIPES = [
 function App() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
+  const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
-  const filteredRecipes = MOCK_RECIPES.filter((r) => {
+  // Fetch recipes from backend when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchRecipes();
+    }
+  }, [isAuthenticated]);
+
+  const fetchRecipes = async () => {
+    try {
+      setLoading(true);
+      const response = await recipeAPI.getAll();
+      // Set recipes from backend, even if empty
+      setRecipes(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch recipes:', error);
+      // Set empty array on error instead of mock data
+      setRecipes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRecipeAdded = (newRecipe) => {
+    setRecipes([...recipes, newRecipe]);
+  };
+
+  const handleRecipeDeleted = async (recipeId) => {
+    try {
+      await recipeAPI.delete(recipeId);
+      setRecipes(recipes.filter((r) => r._id !== recipeId));
+    } catch (error) {
+      console.error('Failed to delete recipe:', error);
+    }
+  };
+
+  const handleRecipeUpdated = (updatedRecipe) => {
+    setRecipes(recipes.map(r => r._id === updatedRecipe._id ? updatedRecipe : r));
+  };
+
+  const filteredRecipes = recipes.filter((r) => {
     const matchesCategory =
       selectedCategory === "All" || r.category === selectedCategory;
-    const lower = searchTerm.toLowerCase();
+    
+    // If no search term, just filter by category
+    if (!searchTerm.trim()) {
+      return matchesCategory;
+    }
+    
+    const lower = searchTerm.toLowerCase().trim();
     const matchesSearch =
-      r.title.toLowerCase().includes(lower) ||
-      (r.tags || []).some((t) => t.toLowerCase().includes(lower));
+      r.title?.toLowerCase().includes(lower) ||
+      (r.tags || []).some((t) => t?.toLowerCase().includes(lower)) ||
+      (r.ingredients || []).some((ing) => ing?.toLowerCase().includes(lower)) ||
+      r.steps?.toLowerCase().includes(lower);
+    
     return matchesCategory && matchesSearch;
   });
 
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-cream-100">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-caramel-500 rounded-full mb-4 animate-pulse">
+            <FaUtensils className="text-white text-2xl" />
+          </div>
+          <p className="text-brown-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show landing page if not authenticated
+  if (!isAuthenticated) {
+    return <LandingPage />;
+  }
+
+  // Show main app if authenticated
   return (
-    /* Choose wrapper class:
-       - Use "app-watermark" for centered background watermark (Option A)
-       - Use "corner-watermark" for corner accent (Option C)
-       You can combine with the fixed overlay below if desired.
-    */
     <div className="app-watermark min-h-screen">
       {/* Option B overlay: uncomment to enable fixed centered overlay */}
       <div className="fixed-watermark-overlay pointer-events-none">
@@ -138,18 +208,34 @@ function App() {
 
       <div className="app-content relative z-10 min-h-screen flex flex-col">
         <Navbar />
-        <Hero searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        <main className="flex-1 max-w-6xl w-full mx-auto px-4 pb-10 flex gap-6">
-          <aside className="hidden md:block w-64 shrink-0">
-            <SidebarFilters
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-            />
-          </aside>
+        <Hero 
+          searchTerm={searchTerm} 
+          setSearchTerm={setSearchTerm}
+          onRecipeAdded={handleRecipeAdded}
+        />
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+            {/* Sidebar Filters */}
+            <aside className="w-full lg:w-64 shrink-0">
+              <SidebarFilters
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+              />
+            </aside>
 
-          <section className="flex-1">
-            <RecipeGrid recipes={filteredRecipes} />
-          </section>
+            {/* Recipe Grid */}
+            <section className="flex-1 min-w-0">
+              <RecipeGrid 
+              recipes={filteredRecipes} 
+              loading={loading}
+              searchTerm={searchTerm}
+              totalRecipes={recipes.length}
+              onRecipeAdded={handleRecipeAdded}
+              onRecipeDeleted={handleRecipeDeleted}
+              onRecipeUpdated={handleRecipeUpdated}
+              />
+            </section>
+          </div>
         </main>
       </div>
     </div>

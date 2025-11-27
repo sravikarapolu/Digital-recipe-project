@@ -46,7 +46,8 @@ module.exports = {
         'hover': '0 18px 50px rgba(38, 30, 24, 0.12)',
       },
       borderRadius: {
-        'xl2': '1rem'
+        'xl2': '1rem',
+        '2xl': '1rem',
       },
       lineClamp: {},
     },
